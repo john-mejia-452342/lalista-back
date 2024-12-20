@@ -7,7 +7,7 @@ import httpComentario from '../controllers/comentario.js';
 const router = Router();
 
 router.get("/all", [
-    // validarJWT
+    validarJWT
 ], httpComentario.getComentarios);
 
 router.get("/:id", [
@@ -17,21 +17,21 @@ router.get("/:id", [
     validarCampos
 ], httpComentario.getComentarioById);
 
-router.get("/:idPublicacion", [
+router.get("/pub/:idPublicacion", [
     validarJWT,
     check('idPublicacion', 'Identificador requerido').not().isEmpty(),
     check('idPublicacion', 'Identificador requerido').isMongoId(),
     validarCampos
 ], httpComentario.getComentarioByIdPublicacion);
 
-router.get("/:idUser", [
+router.get("/user/:idUser", [
     validarJWT,
     check('idUser', 'Identificador requerido').not().isEmpty(),
     check('idUser', 'Identificador requerido').isMongoId(),
     validarCampos
 ], httpComentario.getComentariosByIdUser);
 
-router.get("/:startDate/:endDate", [
+router.get("/date/:startDate/:endDate", [
     validarJWT,
     check('startDate', 'Fecha de inicio requerida').not().isEmpty(),
     check('endDate', 'Fecha de fin requerida').not().isEmpty(),
@@ -39,7 +39,7 @@ router.get("/:startDate/:endDate", [
 ], httpComentario.getComentarioByDateRange);
 
 router.post("/add", [
-    // validarJWT,
+    validarJWT,
     check('idPublicacion', 'Identificador de la publicacion requerido').not().isEmpty(),
     check('idPublicacion', 'Identificador de la publicacion requerido').isMongoId(),
     check('idUser', 'Identificador del usuario requerido').not().isEmpty(), 
@@ -64,7 +64,7 @@ router.put("/activar/:id", [
     validarCampos,
 ], httpComentario.putActivarComentario);
 
-router.put("/desactivar/:id", [
+router.put("/inactivar/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),

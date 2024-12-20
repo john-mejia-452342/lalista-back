@@ -1,7 +1,9 @@
 import Publicacion from '../models/publicacion.js';
 import Reaccion from '../models/reaccion.js';
 import Comentario from '../models/comentario.js';
+import User from '../models/user.js';
 import helpersGeneral from '../helpers/generales.js';
+import { get } from 'mongoose';
 
 const obtenerDetallesPublicacion = async (publicacion) => {
     const comentarios = await Comentario.find({ idPublicacion: publicacion._id }).populate('idUser', 'nombre');
@@ -25,8 +27,36 @@ const obtenerDetallesPublicacion = async (publicacion) => {
 const httpPublicacion = {
     // Obtener todas las publicaciones
     getPublicaciones: async (req, res) => {
-        try {z
+        try {
+            const publicaciones = await Publicacion.find().populate('idUser', 'nombre');
+            if (!publicaciones || publicaciones.length === 0) {
+                return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
+            }
+            const publicacionesConDetalles = await Promise.all(publicaciones.map(obtenerDetallesPublicacion));
+            res.json(publicacionesConDetalles);
+        } catch (error) {
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+        }
+    },
+
+    // Obtener todas las publicaciones activas
+    getPublicacionesActivas: async (req, res) => {
+        try {
             const publicaciones = await Publicacion.find({ estado: 'Activa' }).populate('idUser', 'nombre');
+            if (!publicaciones || publicaciones.length === 0) {
+                return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
+            }
+            const publicacionesConDetalles = await Promise.all(publicaciones.map(obtenerDetallesPublicacion));
+            res.json(publicacionesConDetalles);
+        } catch (error) {
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+        }
+    },
+
+     // Obtener todas las publicaciones Pendientes
+    getPublicacionesPendientes: async (req, res) => {
+        try {
+            const publicaciones = await Publicacion.find({ estado: 'Pendiente' }).populate('idUser', 'nombre');
             if (!publicaciones || publicaciones.length === 0) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             }
@@ -44,19 +74,19 @@ const httpPublicacion = {
             const publicacionID = await Publicacion.findById(id);
             if (!publicacionID) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
-            };
-            const publicacionesConDetalles = await Promise.all(publicacionID.map(obtenerDetallesPublicacion));
-            res.json(publicacionesConDetalles);
+            }
+            const publicacionConDetalles = await obtenerDetallesPublicacion(publicacionID);
+            res.json(publicacionConDetalles);
         } catch (error) {
-            req.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
     // Obtener publicaciones por el id del usuario
     getPublicacionesByIdUser: async (req, res) => {
         try {
-            const { idUser } = req.params;
-            const publicaciones = await Publicacion.find({ userId: idUser });
+            const { idUser } = req.params;  
+            const publicaciones = await Publicacion.find({ idUser: idUser });
             if (!publicaciones || publicaciones.length === 0) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             }
@@ -73,19 +103,40 @@ const httpPublicacion = {
             const { startDate, endDate } = req.params;
             const start = new Date(startDate);
             const end = new Date(endDate);
+            start.setUTCHours(0, 0, 0, 0);
+            end.setUTCHours(23, 59, 59, 999);
             const publicaciones = await Publicacion.find({
-                fecha: {
-                    $gte: start,
-                    $lte: end
+                createAT: { 
+                    $gte: start, 
+                    $lte: end 
                 }
             });
-            if (!publicaciones || publicaciones.length === 0) {
-                return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
+            if (publicaciones.length === 0) {
+                return res.status(404).json({ 
+                    error: 'No se encontraron publicaciones en el rango de fechas.'
+                });
             }
             const publicacionesConDetalles = await Promise.all(publicaciones.map(obtenerDetallesPublicacion));
             res.json(publicacionesConDetalles);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            console.error('Error completo:', error);
+            res.status(500).json({ error: 'Error interno del servidor.' });
+        }
+    },
+
+    getPublicacionesByTipo: async (req, res) => {
+        try {
+            const { tipo } = req.params;
+            const publicaciones = await Publicacion.find({ tipo: tipo });
+            if (publicaciones.length === 0) {
+                return res.status(404).json({ 
+                    error: 'No se encontraron publicaciones con el tipo especificado.'
+                });
+            }
+            const publicacionesConDetalles = await Promise.all(publicaciones.map(obtenerDetallesPublicacion));
+            res.json(publicacionesConDetalles);
+        } catch (error) {
+            res.status(500).json({ error: 'Error interno del servidor.' });
         }
     },
 
@@ -111,9 +162,13 @@ const httpPublicacion = {
     putUpdatePublicacion: async (req, res) => {
         try {
             const { id } = req.params;
-            const { titulo, contenido, imagen, estado } = req.body;
-            const userId = req.user._id;
-            const userRole = req.user.rol;
+            const { titulo, contenido, imagen, idUser } = req.body;
+            const user = await User.findById(idUser);
+            if (!user) {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
+            const userId = user._id.toString();
+            const userRole = user.rol;
             const publicacion = await Publicacion.findById(id);
             if (!publicacion) {
                 return res.status(404).json({ error: helpersGeneral.errores.noEncontrado });
@@ -123,12 +178,12 @@ const httpPublicacion = {
             }
             const publicacionActualizada = await Publicacion.findByIdAndUpdate(
                 id,
-                { titulo, contenido, imagen, estado },
+                { titulo, contenido, imagen },
                 { new: true }
             );
             res.json(publicacionActualizada);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor, detalleError: error.message });
         }
     },
 

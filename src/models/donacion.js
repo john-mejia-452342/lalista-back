@@ -6,7 +6,7 @@ const donacionSchema = new mongoose.Schema({
     mensaje: { type: String, required: true },
     comprobante: { type: String, required: true },
     createAT: { type: Date, default: Date.now },
-    estado: { type: Number, default: 'Pendiente' }
+    estado: { type: String, default: 'Pendiente' }
 });
 
 export default mongoose.model('Donacion', donacionSchema);

@@ -1,13 +1,13 @@
 import User from '../models/user.js';
 import bcrypt from 'bcryptjs';
-import nodeMailer from 'nodemailer';
+import nodemailer from 'nodemailer';
 import { generarJWT } from '../middlewares/validar-jwt.js';
 import helpersGeneral from '../helpers/generales.js';
 
 let codigoEnviado = {};
 
 function generarCodigo() {
-    let numAleatorio = Math.floor(1000 + Math.random() * 100000);
+    let numAleatorio = Math.floor(1000 + Math.random() * 1000000);
     let num = numAleatorio.toString().padStart(6, '0');
     let fechaCreacion = new Date();
 
@@ -35,21 +35,18 @@ const hhtpUser = {
         }
     },
 
-    //Obtener un usuario por su id
     getUserById: async (req, res) => {
         try {
             const { id } = req.params;
-            const userId = await User.findById(id);
-            if (!userId) {
+            console.log(id);
+            const user = await User.findById(id);
+            if (!user) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
-            };
-            const userFormat = userId.map((element) => {
-                delete element._doc.password;
-                return element
-            });
-            res.json(userFormat);
+            }
+            const { password, ...userWithoutPassword } = user._doc;
+            res.status(200).json(userWithoutPassword);
         } catch (error) {
-            req.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
@@ -57,17 +54,14 @@ const hhtpUser = {
     getUserByCorreo: async (req, res) => {
         try {
             const { correo } = req.params;
-            const userCorreo = await User.findOne(correo);
+            const userCorreo = await User.findOne({correo});
             if (!userCorreo) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             };
-            const userFormat = userCorreo.map((element) => {
-                delete element._doc.password;
-                return element
-            });
-            res.json(userFormat);
+            const { password, ...userWithoutPassword } = userCorreo._doc;
+            res.status(200).json(userWithoutPassword);
         } catch (error) {
-            req.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error});
         }
     },
 
@@ -79,7 +73,6 @@ const hhtpUser = {
             if (user.password) {
                 const salt = bcrypt.genSaltSync();
                 user.password = bcrypt.hashSync(password, salt);
-                
             }
             await user.save();
             delete user._doc.password;
@@ -93,7 +86,7 @@ const hhtpUser = {
     postLogin: async (req, res) => {
         try {
             const { correo, password } = req.body;
-            const user = await User.findOne({ correo });
+            const user = await User.findOne({correo});
             if (!user) {
                 return res.status(400).json({ error: "Correo/Password incorrectos" });
             };
@@ -108,7 +101,7 @@ const hhtpUser = {
             if (!validPassword) {
                 return res.status(400).json({ error: "Correo/Password incorrectos" });
             };
-            const token = await generarJWT(user.id);
+            const token = await generarJWT(user._id);
             delete user._doc.password;
             res.json({ user, token });
         } catch (error) {
@@ -119,17 +112,17 @@ const hhtpUser = {
     //Codigo Recuperacion de contraseña
     codigoRecuperacion: async (req, res) => {
         try {
-            const { correo } = req.params;
+            const { correo } = req.params; 
             const codigo = generarCodigo();
 
-            const transporter = nodeMailer.createTransport({
+            const transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
                     user: process.env.userEmail,
                     pass: process.env.password,
                 },
             });
-
+            
             const mailOptions = {
                 from: process.env.userEmail,
                 to: correo,

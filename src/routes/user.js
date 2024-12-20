@@ -3,11 +3,12 @@ import { check } from 'express-validator';
 import { validarJWT } from '../middlewares/validar-jwt.js';
 import validarCampos from '../middlewares/validar-campos.js';
 import httpUser from '../controllers/user.js';
+import helpersUsuario from '../helpers/usuario.js';
 
 const router = Router();
 
 router.get("/all", [
-    // validarJWT
+    validarJWT
 ], httpUser.getUsers);
 
 router.get("/:id", [
@@ -17,7 +18,7 @@ router.get("/:id", [
     validarCampos
 ], httpUser.getUserById);
 
-router.get("/:correo", [
+router.get("/email/:correo", [
     validarJWT,
     check('correo', 'Correo requerido').not().isEmpty(),
     check('correo', 'Correo requerido').isEmail(),
@@ -39,11 +40,35 @@ router.post("/login", [
     validarCampos,
 ], httpUser.postLogin);
 
+router.get("/sendCode/:correo", [
+    check('correo', 'Correo requerido').not().isEmpty(),
+    check('correo', 'Correo requerido').isEmail(),
+    validarCampos
+], httpUser.codigoRecuperacion);
+
+router.get("/confirmar-codigo/:codigo", [
+    check('codigo', 'Codigo requerido').not().isEmpty(),
+    validarCampos
+], httpUser.confirmarCodigo);
+
+router.put("/cambio-password", [
+    check('correo', 'Correo requerido').not().isEmpty(),
+    check('correo', 'Correo requerido').isEmail(),
+    check('correo').custom(helpersUsuario.existeCorreoNewPass),
+    check('codigo', 'Codigo requerido').not().isEmpty(),
+    check('password', 'La contraseña es obligatoria').not().isEmpty(),
+    check('password', 'La contraseña debe tener al menos 1 mayuscula, 1 minuscula, 2 números y un caracter especial.'
+    ).custom(helpersUsuario.validarClave),
+    validarCampos,
+], httpUser.nuevaPassword);
+
 router.put("/cambio-password/:id", [
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),
     check('password', 'La contraseña es obligatoria').not().isEmpty(),
     check('nuevaPassword', 'La nueva contraseña es obligatoria').not().isEmpty(),
+    check('nuevaPassword', 'La nueva contraseña debe tener al menos 1 mayuscula, 1 minuscula, 2 números y un caracter especial.'
+    ).custom(helpersUsuario.validarClave),
     validarCampos,
 ], httpUser.putCambioPassword);
 
@@ -64,7 +89,7 @@ router.put("/activar/:id", [
     validarCampos,
 ], httpUser.putActivarUsuario);
 
-router.put("/desactivar/:id", [
+router.put("/inactivar/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),

@@ -10,7 +10,7 @@ const validarRolAdmin = async (req, res, next) => {
                 error: "No hay token en la peticion",
             });
         }
-        const { uid } = jwt.verify(token, process.env.SECRETORPRIVATEKEY);
+        const { uid } = jwt.verify(token, process.env.secretKey);
         const usuario = await Usuario.findById(uid);
         if (usuario.rol != "admin") {
             return res.status(401).json({ error: helpersGeneral.errores.noAutorizado });

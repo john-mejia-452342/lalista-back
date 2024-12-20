@@ -7,7 +7,7 @@ import httpDonacion from '../controllers/donacion.js';
 const router = Router();
 
 router.get("/all", [
-    // validarJWT
+    validarJWT
 ], httpDonacion.getDonaciones);
 
 router.get("/:id", [
@@ -18,14 +18,14 @@ router.get("/:id", [
 ], httpDonacion.getDonacionById);
 
 
-router.get("/:idUser", [
+router.get("/user/:idUser", [
     validarJWT,
     check('idUser', 'Identificador requerido').not().isEmpty(),
     check('idUser', 'Identificador requerido').isMongoId(),
     validarCampos
 ], httpDonacion.getDonacionByIdUser);
 
-router.get("/:startDate/:endDate", [
+router.get("/date/:startDate/:endDate", [
     validarJWT,
     check('startDate', 'Fecha de inicio requerida').not().isEmpty(),
     check('endDate', 'Fecha de fin requerida').not().isEmpty(),
@@ -33,7 +33,7 @@ router.get("/:startDate/:endDate", [
 ], httpDonacion.getDonacionesByDateRange);
 
 router.post("/add", [
-    // validarJWT,
+    validarJWT,
     check('idUser', 'Identificador del usuario requerido').not().isEmpty(), 
     check('idUser', 'Identificador del usuario requerido').isMongoId(),
     check('monto', 'Monto requerido').not().isEmpty(),
@@ -42,17 +42,17 @@ router.post("/add", [
     validarCampos,
 ], httpDonacion.postAddDonacion);
 
-router.put("/editar/:id", [
-    validarJWT,
-    check('id', 'Identificador requerido').not().isEmpty(),
-    check('id', 'Identificador requerido').isMongoId(),
-    check('idUser', 'Identificador del usuario requerido').not().isEmpty(),
-    check('idUser', 'Identificador del usuario requerido').isMongoId(),
-    check('monto', 'Monto requerido').not().isEmpty(),
-    check('mensaje', 'Mensaje requerido').not().isEmpty(),
-    check('comprobante', 'Comprobante requerido').not().isEmpty(),
-    validarCampos,
-], httpDonacion.putUpdateDonacion);
+// router.put("/editar/:id", [
+//     validarJWT,
+//     check('id', 'Identificador requerido').not().isEmpty(),
+//     check('id', 'Identificador requerido').isMongoId(),
+//     check('idUser', 'Identificador del usuario requerido').not().isEmpty(),
+//     check('idUser', 'Identificador del usuario requerido').isMongoId(),
+//     check('monto', 'Monto requerido').not().isEmpty(),
+//     check('mensaje', 'Mensaje requerido').not().isEmpty(),
+//     check('comprobante', 'Comprobante requerido').not().isEmpty(),
+//     validarCampos,
+// ], httpDonacion.putUpdateDonacion);
 
 router.put("/activar/:id", [
     validarJWT,
@@ -61,7 +61,7 @@ router.put("/activar/:id", [
     validarCampos,
 ], httpDonacion.putActivarDonacion);
 
-router.put("/desactivar/:id", [
+router.put("/inactivar/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),

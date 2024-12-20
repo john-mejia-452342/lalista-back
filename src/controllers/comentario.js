@@ -1,4 +1,5 @@
 import Comentario from '../models/comentario.js';
+import User from '../models/user.js';
 import helpersGeneral from '../helpers/generales.js';
 
 const httpComentario = {
@@ -32,7 +33,7 @@ const httpComentario = {
     // Obtener Comentarios por el id de la Publicacion
     getComentarioByIdPublicacion: async (req, res) => {
         try {
-            const { idPublicacion } = req.params;
+            const { idPublicacion } = req.params;   
             const comentario = await Comentario.find({ idPublicacion: idPublicacion });
             if (!comentario || comentario.length === 0) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
@@ -63,14 +64,18 @@ const httpComentario = {
             const { startDate, endDate } = req.params;
             const start = new Date(startDate);
             const end = new Date(endDate);
+            start.setUTCHours(0, 0, 0, 0);
+            end.setUTCHours(23, 59, 59, 999);
             const comentarios = await Comentario.find({
-                fecha: {
-                    $gte: start,
-                    $lte: end
+                createAT: { 
+                    $gte: start, 
+                    $lte: end 
                 }
             });
-            if (!comentarios || comentarios.length === 0) {
-                return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
+            if (comentarios.length === 0) {
+                return res.status(404).json({ 
+                    error: 'No se encontraron comentarios en el rango de fechas.'
+                });
             }
             res.json(comentarios);
         } catch (error) {
@@ -98,9 +103,13 @@ const httpComentario = {
     putUpdateComentario: async (req, res) => {
         try {
             const { id } = req.params;
-            const { contenido } = req.body;
-            const userId = req.user._id; 
-            const userRole = req.user.rol; 
+            const { contenido, idUser } = req.body;
+            const user = await User.findById(idUser);
+            if (!user) {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
+            const userId = user._id.toString();
+            const userRole = user.rol;
             const comentario = await Comentario.findById(id);
             if (!comentario) {
                 return res.status(404).json({ error: helpersGeneral.errores.noEncontrado });

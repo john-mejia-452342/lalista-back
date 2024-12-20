@@ -7,7 +7,7 @@ const generarJWT = (uid) => {
         const payload = { uid };
         jwt.sign(
             payload,
-            process.env.SECRETORPRIVATEKEY,
+            process.env.secretKey,
             {
                 expiresIn: "24h",
             },
@@ -32,7 +32,7 @@ const validarJWT = async (req, res, next) => {
             });
         }
 
-        const { uid } = jwt.verify(token, process.env.SECRETORPRIVATEKEY);
+        const { uid } = jwt.verify(token, process.env.secretKey);
 
         let usuario = await User.findById(uid);
 

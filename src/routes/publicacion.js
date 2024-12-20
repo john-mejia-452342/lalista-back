@@ -7,8 +7,16 @@ import hhtpPublicacion from '../controllers/publicacion.js';
 const router = Router();
 
 router.get("/all", [
-    // validarJWT
+    validarJWT
 ], hhtpPublicacion.getPublicaciones);
+
+router.get("/activas", [
+    validarJWT
+], hhtpPublicacion.getPublicacionesActivas);
+
+router.get("/pendientes", [
+    validarJWT
+], hhtpPublicacion.getPublicacionesPendientes);
 
 router.get("/:id", [
     validarJWT,
@@ -17,24 +25,31 @@ router.get("/:id", [
     validarCampos
 ], hhtpPublicacion.getPublicacionById);
 
-router.get("/:idUser", [
+router.get("/idUser/:idUser", [
     validarJWT,
     check('idUser', 'Identificador requerido').not().isEmpty(),
     check('idUser', 'Identificador requerido').isMongoId(),
     validarCampos
 ], hhtpPublicacion.getPublicacionesByIdUser);
 
-router.get("/:startDate/:endDate", [
+router.get("/date/:startDate/:endDate", [
     validarJWT,
     check('startDate', 'Fecha de inicio requerida').not().isEmpty(),
     check('endDate', 'Fecha de fin requerida').not().isEmpty(),
     validarCampos
 ], hhtpPublicacion.getPublicacionesByDateRange);
 
+router.get("/tipo/:tipo", [
+    validarJWT,
+    check('tipo', 'Tipo requerido').not().isEmpty(),
+    validarCampos
+], hhtpPublicacion.getPublicacionesByTipo);
+
 router.post("/add", [
-    // validarJWT,
+    validarJWT,
     check('titulo', 'El titulo es obligatorio').not().isEmpty(),
     check('contenido', 'El contenido es obligatorio').not().isEmpty(),
+    check('tipo', 'El tipo es obligatorio').not().isEmpty(),
     check('idUser', 'Identificador del usuario es obligatorio').not().isEmpty(),
     validarCampos,
 ], hhtpPublicacion.postAddPublicacion);
@@ -45,19 +60,20 @@ router.put("/editar/:id", [
     check('id', 'Identificador requerido').isMongoId(),
     check('titulo', 'El titulo es obligatorio').not().isEmpty(),
     check('contenido', 'El contenido es obligatorio').not().isEmpty(),
+    check('tipo', 'El tipo es obligatorio').not().isEmpty(),
     check('idUser', 'Identificador del usuario es obligatorio').not().isEmpty(),
     check('idUser', 'Identificador del usuario es obligatorio').isMongoId(),
     validarCampos,
 ], hhtpPublicacion.putUpdatePublicacion);
 
 router.put("/activar/:id", [
-    // validarJWT,
+    validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),
     validarCampos,
 ], hhtpPublicacion.putActivarPublicacion);
 
-router.put("/desactivar/:id", [
+router.put("/inactivar/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),

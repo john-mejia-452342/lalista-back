@@ -1,4 +1,5 @@
 import Reaccion from '../models/reaccion.js';
+import User from '../models/user.js';
 import helpersGeneral from '../helpers/generales.js';
 
 const httpReaccion = {
@@ -63,14 +64,18 @@ const httpReaccion = {
             const { startDate, endDate } = req.params;
             const start = new Date(startDate);
             const end = new Date(endDate);
+            start.setUTCHours(0, 0, 0, 0);
+            end.setUTCHours(23, 59, 59, 999);
             const reacciones = await Reaccion.find({
-                fecha: {
+                createAT: {
                     $gte: start,
                     $lte: end
                 }
             });
-            if (!reacciones || reacciones.length === 0) {
-                return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
+            if (reacciones.length === 0) {
+                return res.status(404).json({
+                    error: 'No se encontraron reacciones en el rango de fechas.'
+                });
             }
             res.json(reacciones);
         } catch (error) {
@@ -99,9 +104,13 @@ const httpReaccion = {
     putUpdateReaccion: async (req, res) => {
         try {
             const { id } = req.params;
-            const { tipo } = req.body;
-            const userId = req.user._id; 
-            const userRole = req.user.rol; 
+            const { idUser, tipo } = req.body;
+            const user = await User.findById(idUser);
+            if (!user) {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
+            const userId = user._id.toString();
+            const userRole = user.rol;
             const reaccion = await Reaccion.findById(id);
             if (!reaccion) {
                 return res.status(404).json({ error: helpersGeneral.errores.noEncontrado });
