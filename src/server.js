@@ -11,6 +11,7 @@ import Publicacion from './routes/publicacion.js';
 import Comentario from './routes/comentario.js';
 import Reaccion from './routes/reaccion.js';
 import Donacion from './routes/donacion.js';
+import Notificacion from './routes/notificacion.js';
 
 
 class Server {
@@ -35,6 +36,7 @@ class Server {
         this.app.use('/api/comentario', Comentario);
         this.app.use('/api/reaccion', Reaccion);
         this.app.use('/api/donacion', Donacion);
+        this.app.use('/api/notificacion', Notificacion);
     }
 
     listen() {

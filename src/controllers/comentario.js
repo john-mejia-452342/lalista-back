@@ -1,5 +1,6 @@
 import Comentario from '../models/comentario.js';
 import User from '../models/user.js';
+import Notificacion from '../models/notificacion.js';
 import helpersGeneral from '../helpers/generales.js';
 
 const httpComentario = {
@@ -92,8 +93,15 @@ const httpComentario = {
                 idUser,
                 contenido
             });
+            const nuevaNotificacion = new Notificacion({
+                idUser,
+                idComentario: nuevoComentario._id,
+                tipo: 'comentario',
+                mensaje: 'Nuevo comentario en una publicacion'
+            });
+            const notificacionGuardada = await nuevaNotificacion.save();
             const comentarioGuardado = await nuevoComentario.save();
-            res.status(201).json(comentarioGuardado);
+            res.status(201).json({comentarioGuardado, notificacionGuardada});
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }

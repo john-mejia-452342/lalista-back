@@ -50,7 +50,10 @@ router.post("/add", [
     check('titulo', 'El titulo es obligatorio').not().isEmpty(),
     check('contenido', 'El contenido es obligatorio').not().isEmpty(),
     check('tipo', 'El tipo es obligatorio').not().isEmpty(),
+    check('ciudad', 'La ciudad es obligatoria').not().isEmpty(),
+    check('categoria', 'La categoria es obligatoria').not().isEmpty(),
     check('idUser', 'Identificador del usuario es obligatorio').not().isEmpty(),
+    check('idUser', 'Identificador del usuario es obligatorio').isMongoId(),
     validarCampos,
 ], hhtpPublicacion.postAddPublicacion);
 
@@ -61,6 +64,8 @@ router.put("/editar/:id", [
     check('titulo', 'El titulo es obligatorio').not().isEmpty(),
     check('contenido', 'El contenido es obligatorio').not().isEmpty(),
     check('tipo', 'El tipo es obligatorio').not().isEmpty(),
+    check('ciudad', 'La ciudad es obligatoria').not().isEmpty(),
+    check('categoria', 'La categoria es obligatoria').not().isEmpty(),
     check('idUser', 'Identificador del usuario es obligatorio').not().isEmpty(),
     check('idUser', 'Identificador del usuario es obligatorio').isMongoId(),
     validarCampos,

@@ -1,5 +1,6 @@
 import Reaccion from '../models/reaccion.js';
 import User from '../models/user.js';
+import Notificacion from '../models/notificacion.js';
 import helpersGeneral from '../helpers/generales.js';
 
 const httpReaccion = {
@@ -93,8 +94,15 @@ const httpReaccion = {
                 idUser,
                 tipo
             });
+            const nuevaNotificacion = new Notificacion({
+                idUser,
+                idComentario: nuevaReaccion._id,
+                tipo: 'reaccion',
+                mensaje: 'Nuevo reaccion en una publicacion'
+            });
+
             const reaccionGuardada = await nuevaReaccion.save();
-            res.status(201).json(reaccionGuardada);
+            res.status(201).json({reaccionGuardada, nuevaNotificacion});
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }

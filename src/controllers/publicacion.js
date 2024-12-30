@@ -2,8 +2,8 @@ import Publicacion from '../models/publicacion.js';
 import Reaccion from '../models/reaccion.js';
 import Comentario from '../models/comentario.js';
 import User from '../models/user.js';
+import Notificacion from '../models/notificacion.js';
 import helpersGeneral from '../helpers/generales.js';
-import { get } from 'mongoose';
 
 const obtenerDetallesPublicacion = async (publicacion) => {
     const comentarios = await Comentario.find({ idPublicacion: publicacion._id }).populate('idUser', 'nombre');
@@ -53,7 +53,7 @@ const httpPublicacion = {
         }
     },
 
-     // Obtener todas las publicaciones Pendientes
+    // Obtener todas las publicaciones Pendientes
     getPublicacionesPendientes: async (req, res) => {
         try {
             const publicaciones = await Publicacion.find({ estado: 'Pendiente' }).populate('idUser', 'nombre');
@@ -85,7 +85,7 @@ const httpPublicacion = {
     // Obtener publicaciones por el id del usuario
     getPublicacionesByIdUser: async (req, res) => {
         try {
-            const { idUser } = req.params;  
+            const { idUser } = req.params;
             const publicaciones = await Publicacion.find({ idUser: idUser });
             if (!publicaciones || publicaciones.length === 0) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
@@ -106,13 +106,13 @@ const httpPublicacion = {
             start.setUTCHours(0, 0, 0, 0);
             end.setUTCHours(23, 59, 59, 999);
             const publicaciones = await Publicacion.find({
-                createAT: { 
-                    $gte: start, 
-                    $lte: end 
+                createAT: {
+                    $gte: start,
+                    $lte: end
                 }
             });
             if (publicaciones.length === 0) {
-                return res.status(404).json({ 
+                return res.status(404).json({
                     error: 'No se encontraron publicaciones en el rango de fechas.'
                 });
             }
@@ -129,7 +129,7 @@ const httpPublicacion = {
             const { tipo } = req.params;
             const publicaciones = await Publicacion.find({ tipo: tipo });
             if (publicaciones.length === 0) {
-                return res.status(404).json({ 
+                return res.status(404).json({
                     error: 'No se encontraron publicaciones con el tipo especificado.'
                 });
             }
@@ -143,16 +143,34 @@ const httpPublicacion = {
     // Agregar una nueva publicación
     postAddPublicacion: async (req, res) => {
         try {
-            const { titulo, contenido, imagen, idUser } = req.body;
+            const { titulo, contenido, imagen, idUser, tipo, categoria, ciudad } = req.body;
 
             const nuevaPublicacion = new Publicacion({
                 titulo,
                 contenido,
                 imagen,
                 idUser,
+                tipo,
+                ciudad,
+                categoria,
             });
+
+            const user = await User.findById(idUser);
+
+            const userAdmin = await User.find({ rol: 'admin' });
+
+            userAdmin.forEach(async (admin) => {
+                const nuevaNotificacion = new Notificacion({
+                    idUser: admin._id,
+                    idPublicacion: nuevaPublicacion._id,
+                    tipo: 'Publicacion',
+                    mensaje: `El usuario ${user.nombre} ha creado una nueva publicacion.`
+                });
+                await nuevaNotificacion.save();
+            });
+
             const publicacionGuardada = await nuevaPublicacion.save();
-            res.json(publicacionGuardada);
+            res.json({publicacionGuardada});
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
@@ -192,7 +210,13 @@ const httpPublicacion = {
         try {
             const { id } = req.params;
             const publicacion = await Publicacion.findByIdAndUpdate(id, { estado: 'Activa' }, { new: true });
-            res.json(publicacion);
+            const notificacion = new Notificacion({
+                idUser: publicacion.idUser,
+                idPublicacion: publicacion._id,
+                tipo: 'Publicacion',
+                mensaje: `Se ha aprobado tu publicacion ${publicacion.titulo}.`
+            });
+            res.json({publicacion, notificacion});
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
@@ -203,7 +227,13 @@ const httpPublicacion = {
         try {
             const { id } = req.params;
             const publicacion = await Publicacion.findByIdAndUpdate(id, { estado: 'Rechazada' }, { new: true });
-            res.json(publicacion);
+            const notificacion = new Notificacion({
+                idUser: publicacion.idUser,
+                idPublicacion: publicacion._id,
+                tipo: 'Publicacion',
+                mensaje: `Se ha rechazado tu publicacion ${publicacion.titulo}.`
+            });
+            res.json({publicacion, notificacion});
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
