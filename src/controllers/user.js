@@ -11,7 +11,7 @@ function generarCodigo() {
     let num = numAleatorio.toString().padStart(6, '0');
     let fechaCreacion = new Date();
 
-    codigoEnviado = {codigo: num, fechaCreacion};
+    codigoEnviado = { codigo: num, fechaCreacion };
 
     return num;
 }
@@ -31,7 +31,7 @@ const hhtpUser = {
             });
             res.json(usersFormat);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
@@ -54,14 +54,14 @@ const hhtpUser = {
     getUserByCorreo: async (req, res) => {
         try {
             const { correo } = req.params;
-            const userCorreo = await User.findOne({correo});
+            const userCorreo = await User.findOne({ correo });
             if (!userCorreo) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             };
             const { password, ...userWithoutPassword } = userCorreo._doc;
             res.status(200).json(userWithoutPassword);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
@@ -78,7 +78,7 @@ const hhtpUser = {
             delete user._doc.password;
             res.json(user);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
@@ -86,7 +86,7 @@ const hhtpUser = {
     postLogin: async (req, res) => {
         try {
             const { correo, password } = req.body;
-            const user = await User.findOne({correo});
+            const user = await User.findOne({ correo });
             if (!user) {
                 return res.status(400).json({ error: "Correo/Password incorrectos" });
             };
@@ -105,14 +105,14 @@ const hhtpUser = {
             delete user._doc.password;
             res.json({ user, token });
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
-    //Codigo Recuperacion de contraseña
+    // Código Recuperación de Contraseña
     codigoRecuperacion: async (req, res) => {
         try {
-            const { correo } = req.params; 
+            const { correo } = req.params;
             const codigo = generarCodigo();
 
             const transporter = nodemailer.createTransport({
@@ -122,31 +122,81 @@ const hhtpUser = {
                     pass: process.env.password,
                 },
             });
-            
+
             const mailOptions = {
                 from: process.env.userEmail,
                 to: correo,
                 subject: 'Recuperación de contraseña',
-                text: `Su código de recuperación es: ${codigo}`,
+                html: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        .email-container {
+                            font-family: Arial, sans-serif;
+                            line-height: 1.5;
+                            color: #333333;
+                            max-width: 600px;
+                            margin: 20px auto;
+                            border: 1px solid #dddddd;
+                            border-radius: 8px;
+                            overflow: hidden;
+                        }
+                        .email-header {
+                            background-color: #4CAF50;
+                            color: white;
+                            padding: 20px;
+                            text-align: center;
+                        }
+                        .email-body {
+                            padding: 20px;
+                        }
+                        .email-code {
+                            font-size: 24px;
+                            color: #4CAF50;
+                            text-align: center;
+                            margin: 20px 0;
+                            font-weight: bold;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="email-container">
+                        <div class="email-header">
+                            <h1>Recuperación de Contraseña</h1>
+                        </div>
+                        <div class="email-body">
+                            <p>Hola,</p>
+                            <p>Has solicitado recuperar tu contraseña. Usa el siguiente código para completar el proceso:</p>
+                            <div class="email-code">${codigo}</div>
+                            <p>Si no solicitaste esta acción, ignora este mensaje.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `,
             };
 
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    console.log(error);
-                    res.status(500).json({
+                    console.error(error);
+                    return res.status(500).json({
                         success: false,
                         error: 'Error al enviar el correo',
                     });
-                }else {
-                    console.log('Correo enviado: ' + info.response);
-                    res.json({ 
-                        success: true,
-                        message: 'Correo enviado exitosamente' 
-                    });
                 }
+                console.log('Correo enviado: ' + info.response);
+                res.json({
+                    success: true,
+                    message: 'Correo enviado exitosamente'
+                });
             });
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            console.error(error);
+            res.status(500).json({
+                success: false,
+                error: 'Error interno del servidor',
+            });
         }
     },
 
@@ -158,7 +208,7 @@ const hhtpUser = {
                 res.status(400).json({ error: 'No se ha solicitado un código de recuperación' });
             }
 
-            const {codigo: codigoGuardado, fechaCreacion} = codigoEnviado;
+            const { codigo: codigoGuardado, fechaCreacion } = codigoEnviado;
             const tiempoExpiracion = 30;
 
             const tiempoActual = new Date();
@@ -175,7 +225,7 @@ const hhtpUser = {
 
             res.status(400).json({ error: 'Código incorrecto' });
         } catch (error) {
-            return res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            return res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
@@ -184,7 +234,7 @@ const hhtpUser = {
         try {
             const { codigo, password } = req.body;
 
-            const {codigo: codigoGuardado, fechaCreacion} = codigoEnviado;
+            const { codigo: codigoGuardado, fechaCreacion } = codigoEnviado;
             const tiempoExpiracion = 30;
 
             const tiempoActual = new Date();
@@ -209,7 +259,7 @@ const hhtpUser = {
 
             res.status(400).json({ error: 'Código incorrecto' });
         } catch (error) {
-            return res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            return res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
@@ -227,7 +277,7 @@ const hhtpUser = {
             const passwordAnterior = usuario.password;
 
             const validPassword = bcrypt.compareSync(
-                String(password), 
+                String(password),
                 String(passwordAnterior)
             );
 
@@ -242,7 +292,7 @@ const hhtpUser = {
 
             return res.status(200).json({ message: "Contraseña actualizada" });
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
@@ -254,7 +304,7 @@ const hhtpUser = {
             const user = await User.findByIdAndUpdate(id, { nombre, correo, rol, metodoDonacion }, { new: true });
             res.json(user);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
@@ -265,7 +315,7 @@ const hhtpUser = {
             const user = await User.findByIdAndUpdate(id, { estado: 1 }, { new: true });
             res.json(user);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
@@ -276,7 +326,7 @@ const hhtpUser = {
             const user = await User.findByIdAndUpdate(id, { estado: 0 }, { new: true });
             res.json(user);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error});
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 

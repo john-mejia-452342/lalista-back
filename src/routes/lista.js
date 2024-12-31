@@ -2,88 +2,79 @@ import { Router } from 'express';
 import { check } from 'express-validator';
 import { validarJWT } from '../middlewares/validar-jwt.js';
 import validarCampos from '../middlewares/validar-campos.js';
-import httpNotificacion from '../controllers/notificacion.js';
+import httpLista from '../controllers/lista.js';
 
 const router = Router();
 
 router.get("/all", [
     validarJWT
-], httpNotificacion.getNotificaciones);
+], httpLista.getListas);
 
 router.get("/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),
     validarCampos
-], httpNotificacion.getNotificacionById);
+], httpLista.getListaById);
 
-router.get("/pub/:idPublicacion", [
-    validarJWT,
-    check('idPublicacion', 'Identificador requerido').not().isEmpty(),
-    check('idPublicacion', 'Identificador requerido').isMongoId(),
-    validarCampos
-], httpNotificacion.getNotificacionByIdPublicacion);
 
 router.get("/user/:idUser", [
     validarJWT,
     check('idUser', 'Identificador requerido').not().isEmpty(),
     check('idUser', 'Identificador requerido').isMongoId(),
     validarCampos
-], httpNotificacion.getNotificacionesByIdUser);
+], httpLista.getListaByIdUser);
 
 router.get("/date/:startDate/:endDate", [
     validarJWT,
     check('startDate', 'Fecha de inicio requerida').not().isEmpty(),
     check('endDate', 'Fecha de fin requerida').not().isEmpty(),
     validarCampos
-], httpNotificacion.getNotificacionesByDateRange);
+], httpLista.getListaByDateRange);
 
 router.get("/tipo/:tipo", [
     validarJWT,
-    check('tipo', 'Tipo de notificacion requerido').not().isEmpty(),
+    check('tipo', 'Tipo requerido').not().isEmpty(),
     validarCampos
-], httpNotificacion.getNotificacionesByTipo);
+], httpLista.getListaByTipo);
 
 router.post("/add", [
     validarJWT,
     check('idUser', 'Identificador del usuario requerido').not().isEmpty(), 
-    check('tipo', 'Indique el tipo de reaccion').not().isEmpty(),
+    check('idUser', 'Identificador del usuario requerido').isMongoId(),
+    check('tipo', 'Tipo requerido').not().isEmpty(),
     validarCampos,
-], httpNotificacion.postAddNotificacion);
+], httpLista.postAddLista);
 
-router.put("/leida/:id", [
+router.put("/editar/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),
+    check('idUser', 'Identificador del usuario requerido').not().isEmpty(),
+    check('idUser', 'Identificador del usuario requerido').isMongoId(),
+    check('tipo', 'Tipo requerido').not().isEmpty(),
     validarCampos,
-], httpNotificacion.leerNotificacion);
-
-router.put("/noleer/:id", [
-    validarJWT,
-    check('id', 'Identificador requerido').not().isEmpty(),
-    check('id', 'Identificador requerido').isMongoId(),
-    validarCampos,
-], httpNotificacion.noLeerNotificacion);
+], httpLista.putUpdateLista);
 
 router.put("/activar/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),
     validarCampos,
-], httpNotificacion.putActivarNotificacion);
+], httpLista.putActivarLista);
 
 router.put("/inactivar/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),
     validarCampos,
-], httpNotificacion.putInactivarNotificacion);
+], httpLista.putInactivarLista);
 
 router.delete("/eliminar/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),
     validarCampos,
-], httpNotificacion.deleteNotificacion);
+], httpLista.deleteLista);
 
 export default router;

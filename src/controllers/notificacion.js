@@ -82,13 +82,31 @@ const httpNotificacion = {
         }
     },
 
+    // Obtener Notificaciones por tipo 
+    getNotificacionesByTipo: async (req, res) => {
+        try {
+            const { tipo } = req.params;
+            const notificaciones = await Notificacion.find({ tipo: tipo });
+            if (!notificaciones || notificaciones.length === 0) {
+                return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
+            }
+            res.json(notificaciones);
+        } catch (error) {
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+        }
+    },
+
     // Agregar una nueva notificacion
     postAddNotificacion: async (req, res) => {
         try {
-            const { idUser, tipo } = req.body;
+            const { idUser, tipo, mensaje, idComentario, idPublicacion, idReaccion } = req.body;
             const nuevaNotificacion = new Notificacion({
                 idUser,
-                tipo
+                tipo,
+                mensaje,
+                idComentario,
+                idPublicacion,
+                idReaccion
             });
             const notificacionGuardada = await nuevaNotificacion.save();
             res.status(201).json(notificacionGuardada);
@@ -101,7 +119,7 @@ const httpNotificacion = {
     leerNotificacion: async (req, res) => {
         try {
             const { id } = req.params;
-            const notificacion = await Notificacion.findByIdAndUpdate(id, { leido: 1 }, { new: true });
+            const notificacion = await Notificacion.findByIdAndUpdate(id, { leida: 1 }, { new: true });
             res.json(notificacion);
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
@@ -112,7 +130,7 @@ const httpNotificacion = {
     noLeerNotificacion: async (req, res) => {
         try {
             const { id } = req.params;
-            const notificacion = await Notificacion.findByIdAndUpdate(id, { leido: 0 }, { new: true });
+            const notificacion = await Notificacion.findByIdAndUpdate(id, { leida: 0 }, { new: true });
             res.json(notificacion);
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
