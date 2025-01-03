@@ -65,6 +65,24 @@ const hhtpUser = {
         }
     },
 
+    // Obtener usuarios por su nombre
+    getUserByNombre: async (req, res) => {
+        try {
+            const { nombre } = req.params;
+            const userNombre = await User.find({ nombre: { $regex: nombre, $options: 'i' } });
+            if (!userNombre) {
+                return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
+            };
+            const usersFormat = userNombre.map((element) => {
+                delete element._doc.password;
+                return element
+            });
+            res.status(200).json(usersFormat);
+        } catch (error) {
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+        }
+    },
+
     //Registro de usuario
     postUserRegistro: async (req, res) => {
         try {

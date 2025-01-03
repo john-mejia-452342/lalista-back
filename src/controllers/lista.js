@@ -6,7 +6,7 @@ const httpLista = {
     //Obtener todas los listas
     getListas: async (req, res) => {
         try {
-            const listas = await Lista.find();
+            const listas = await Lista.find().populate('idUser', 'nombre correo');
             if (!listas) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             };
@@ -20,7 +20,7 @@ const httpLista = {
     getListaById: async (req, res) => {
         try {
             const { id } = req.params;
-            const ListaId = await Lista.findById(id);
+            const ListaId = await Lista.findById(id).populate('idUser', 'nombre correo');
             if (!ListaId) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             };
@@ -34,7 +34,7 @@ const httpLista = {
     getListaByIdUser: async (req, res) => {
         try {
             const { idUser } = req.params;   
-            const lista = await Lista.find({ idUser: idUser });
+            const lista = await Lista.find({ idUser: idUser }).populate('idUser', 'nombre correo');
             if (!lista || lista.length === 0) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             };
@@ -44,11 +44,37 @@ const httpLista = {
         }
     },
 
-    // Obtener lista por tipo
-    getListaByTipo: async (req, res) => {
+    // Obtener lista negra
+    getListaBlack: async (req, res) => {
         try {
-            const { tipo } = req.params;
-            const lista = await Lista.find({ tipo: tipo });
+            const lista = await Lista.find({ tipo: { $regex: 'negra', $options: 'i' } }).populate('idUser', 'nombre correo');
+            if (!lista || lista.length === 0) {
+                return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
+            }
+            res.json(lista);
+        } catch (error) {
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+        }
+    },
+
+    // Obtener lista blanca
+    getListaWhite: async (req, res) => {
+        try {
+            const lista = await Lista.find({ tipo: { $regex: 'blanca', $options: 'i' } }).populate('idUser', 'nombre correo');
+            if (!lista || lista.length === 0) {
+                return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
+            }
+            res.json(lista);
+        } catch (error) {
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+        }
+    },
+
+    // Obtener lista por categoria
+    getListaByCategoria: async (req, res) => {
+        try {
+            const { categoria } = req.params;
+            const lista = await Lista.find({ categoria: { $regex: categoria, $options: 'i' }}).populate('idUser', 'nombre correo');
             if (!lista || lista.length === 0) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             }
@@ -71,7 +97,7 @@ const httpLista = {
                     $gte: start, 
                     $lte: end 
                 }
-            });
+            }).populate('idUser', 'nombre correo');
             if (listas.length === 0) {
                 return res.status(404).json({ 
                     error: 'No se encontraron listas en el rango de fechas.'
@@ -86,13 +112,17 @@ const httpLista = {
     // Agregar un nuevo lista
     postAddLista: async (req, res) => {
         try {
-            const { idUser, tipo } = req.body;
+            const { idUser, descripcion, razon, imagen, categoria, tipo} = req.body;
             const nuevaLista = new Lista({
                 idUser,
+                descripcion,
+                razon,
+                imagen,
+                categoria,
                 tipo
             });
             const listaGuardado = await nuevaLista.save();
-            res.status(201).json({listaGuardado, notificacionGuardada});
+            res.status(201).json(listaGuardado);
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
@@ -102,7 +132,7 @@ const httpLista = {
     putUpdateLista: async (req, res) => {
         try {
             const { id } = req.params;
-            const { tipo, idUser } = req.body;
+            const {idUser, descripcion, razon, imagen, categoria, tipo } = req.body;
             const user = await User.findById(idUser);
             if (!user) {
                 return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -116,9 +146,9 @@ const httpLista = {
             if (lista.idUser.toString() !== userId && userRole !== 'admin') {
                 return res.status(403).json({ error: 'No tienes permiso para editar este lista' });
             }
-            const listaActualizado = await lista.findByIdAndUpdate(
+            const listaActualizado = await Lista.findByIdAndUpdate(
                 id,
-                { tipo, idUser },
+                { idUser, descripcion, razon, imagen, categoria, tipo},
                 { new: true }
             );
             res.json(listaActualizado);

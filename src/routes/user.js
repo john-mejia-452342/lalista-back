@@ -25,6 +25,12 @@ router.get("/email/:correo", [
     validarCampos
 ], httpUser.getUserByCorreo);
 
+router.get("/name/:nombre", [
+    validarJWT,
+    check('nombre', 'Nombre requerido').not().isEmpty(),
+    validarCampos
+], httpUser.getUserByNombre);
+
 router.post("/registro", [
     check('nombre', 'El nombre es obligatorio').not().isEmpty(),
     check('correo', 'El correo es obligatorio').isEmail(),

@@ -32,16 +32,27 @@ router.get("/date/:startDate/:endDate", [
     validarCampos
 ], httpLista.getListaByDateRange);
 
-router.get("/tipo/:tipo", [
+router.get("/list/black", [
     validarJWT,
-    check('tipo', 'Tipo requerido').not().isEmpty(),
+], httpLista.getListaBlack);
+
+router.get("/list/white", [
+    validarJWT,
+], httpLista.getListaWhite);
+
+router.get("/categoria/:categoria", [
+    validarJWT,
+    check('categoria', 'Categoría requerida').not().isEmpty(),
     validarCampos
-], httpLista.getListaByTipo);
+], httpLista.getListaByCategoria);
 
 router.post("/add", [
     validarJWT,
     check('idUser', 'Identificador del usuario requerido').not().isEmpty(), 
     check('idUser', 'Identificador del usuario requerido').isMongoId(),
+    check('descripcion', 'Descripción requerida').not().isEmpty(),
+    check('razon', 'Razón requerida').not().isEmpty(),
+    check('categoria', 'Categoría requerida').not().isEmpty(),
     check('tipo', 'Tipo requerido').not().isEmpty(),
     validarCampos,
 ], httpLista.postAddLista);
@@ -52,6 +63,9 @@ router.put("/editar/:id", [
     check('id', 'Identificador requerido').isMongoId(),
     check('idUser', 'Identificador del usuario requerido').not().isEmpty(),
     check('idUser', 'Identificador del usuario requerido').isMongoId(),
+    check('descripcion', 'Descripción requerida').not().isEmpty(),
+    check('razon', 'Razón requerida').not().isEmpty(),
+    check('categoria', 'Categoría requerida').not().isEmpty(),
     check('tipo', 'Tipo requerido').not().isEmpty(),
     validarCampos,
 ], httpLista.putUpdateLista);
