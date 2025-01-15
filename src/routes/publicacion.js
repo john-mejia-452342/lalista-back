@@ -3,6 +3,7 @@ import { check } from 'express-validator';
 import { validarJWT } from '../middlewares/validar-jwt.js';
 import validarCampos from '../middlewares/validar-campos.js';
 import hhtpPublicacion from '../controllers/publicacion.js';
+import helpersUser from '../helpers/user.js';
 
 const router = Router();
 
@@ -54,6 +55,7 @@ router.post("/add", [
     check('categoria', 'La categoria es obligatoria').not().isEmpty(),
     check('idUser', 'Identificador del usuario es obligatorio').not().isEmpty(),
     check('idUser', 'Identificador del usuario es obligatorio').isMongoId(),
+    check('idUser').custom(helpersUser.existeId),
     validarCampos,
 ], hhtpPublicacion.postAddPublicacion);
 
@@ -68,6 +70,7 @@ router.put("/editar/:id", [
     check('categoria', 'La categoria es obligatoria').not().isEmpty(),
     check('idUser', 'Identificador del usuario es obligatorio').not().isEmpty(),
     check('idUser', 'Identificador del usuario es obligatorio').isMongoId(),
+    check('idUser').custom(helpersUser.existeId),
     validarCampos,
 ], hhtpPublicacion.putUpdatePublicacion);
 

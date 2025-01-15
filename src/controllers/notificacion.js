@@ -1,6 +1,14 @@
 import Notificacion from '../models/notificacion.js';
 import helpersGeneral from '../helpers/generales.js';
 
+const formatearFecha = (fecha) => {
+    const date = new Date(fecha);
+    const dia = date.getDate().toString().padStart(2, '0');
+    const mes = (date.getMonth() + 1).toString().padStart(2, '0');
+    const año = date.getFullYear();
+    return `${dia}/${mes}/${año}`;
+};
+
 const httpNotificacion = {
     //Obtener todos las Notificaciones
     getNotificaciones: async (req, res) => {
@@ -9,7 +17,14 @@ const httpNotificacion = {
             if (!notificaciones) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             };
-            res.json(notificaciones);
+            const notificacionesConFechaFormateada = notificaciones.map((notificacion) => {
+                return {
+                    ...notificacion.toObject(),
+                    fechaFormateada: formatearFecha(notificacion.createAT)
+                };
+            });
+    
+            res.json(notificacionesConFechaFormateada);
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
@@ -23,9 +38,14 @@ const httpNotificacion = {
             if (!notificacion) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             };
-            res.json(notificacion);
+            const notificacionConFechaFormateada = {
+                ...notificacion.toObject(),
+                fechaFormateada: formatearFecha(notificacion.createAT)
+            };
+    
+            res.json(notificacionConFechaFormateada);
         } catch (error) {
-            req.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
     },
 
@@ -37,7 +57,14 @@ const httpNotificacion = {
             if (!notificacion || notificacion.length === 0) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             };
-            res.json(notificacion);
+            const notificacionesConFechaFormateada = notificacion.map((notificacion) => {
+                return {
+                    ...notificacion.toObject(),
+                    fechaFormateada: formatearFecha(notificacion.createAT)
+                };
+            });
+    
+            res.json(notificacionesConFechaFormateada);
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
@@ -51,7 +78,14 @@ const httpNotificacion = {
             if (!notificaciones || notificaciones.length === 0) {
                 return res.status(400).json({ error: helpersGeneral.errores.noEncontrado });
             }
-            res.json(notificaciones);
+            const notificacionesConFechaFormateada = notificaciones.map((notificacion) => {
+                return {
+                    ...notificacion.toObject(),
+                    fechaFormateada: formatearFecha(notificacion.createAT)
+                };
+            });
+    
+            res.json(notificacionesConFechaFormateada);
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }
@@ -76,7 +110,14 @@ const httpNotificacion = {
                     error: 'No se encontraron notificaciones en el rango de fechas.'
                 });
             }
-            res.json(notificaciones);
+            const notificacionesConFechaFormateada = notificaciones.map((notificacion) => {
+                return {
+                    ...notificacion.toObject(),
+                    fechaFormateada: formatearFecha(notificacion.createAT)
+                };
+            });
+    
+            res.json(notificacionesConFechaFormateada);
         } catch (error) {
             res.status(500).json({ error: helpersGeneral.errores.servidor, error });
         }

@@ -3,6 +3,7 @@ import { check } from 'express-validator';
 import { validarJWT } from '../middlewares/validar-jwt.js';
 import validarCampos from '../middlewares/validar-campos.js';
 import httpComentario from '../controllers/comentario.js';
+import helpersUsuario from '../helpers/user.js';
 
 const router = Router();
 
@@ -42,7 +43,9 @@ router.post("/add", [
     validarJWT,
     check('idPublicacion', 'Identificador de la publicacion requerido').not().isEmpty(),
     check('idPublicacion', 'Identificador de la publicacion requerido').isMongoId(),
-    check('idUser', 'Identificador del usuario requerido').not().isEmpty(), 
+    check('idUser', 'Identificador del usuario requerido').not().isEmpty(),
+    check('idUser', 'Identificador del usuario requerido').isMongoId(),
+    check('idUser').custom(helpersUsuario.existeId),
     check('contenido', 'Contenido requerido').not().isEmpty(),
     validarCampos,
 ], httpComentario.postAddComentario);

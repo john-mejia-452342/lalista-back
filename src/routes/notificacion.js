@@ -3,6 +3,7 @@ import { check } from 'express-validator';
 import { validarJWT } from '../middlewares/validar-jwt.js';
 import validarCampos from '../middlewares/validar-campos.js';
 import httpNotificacion from '../controllers/notificacion.js';
+import helpersUsuario from '../helpers/user.js';
 
 const router = Router();
 
@@ -46,7 +47,9 @@ router.get("/tipo/:tipo", [
 
 router.post("/add", [
     validarJWT,
-    check('idUser', 'Identificador del usuario requerido').not().isEmpty(), 
+    check('idUser', 'Identificador del usuario requerido').not().isEmpty(),
+    check('idUser', 'Identificador del usuario requerido').isMongoId(),
+    check('idUser').custom(helpersUsuario.existeId), 
     check('tipo', 'Indique el tipo de reaccion').not().isEmpty(),
     validarCampos,
 ], httpNotificacion.postAddNotificacion);

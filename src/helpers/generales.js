@@ -63,8 +63,7 @@ const helpersGeneral = {
         servidor: "Error en el servidor, hable con el WebMaster",
         noEncontrado: "Sin resultados",
         noAutorizado: "Acción no autorizada",
-    },
-    
+    },    
 };
 
 export default helpersGeneral;

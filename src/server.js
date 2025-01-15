@@ -4,8 +4,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 
-//Rutas 
-
+// Rutas
 import User from './routes/user.js';
 import Publicacion from './routes/publicacion.js';
 import Comentario from './routes/comentario.js';
@@ -18,7 +17,6 @@ class Server {
     constructor() {
         this.app = express();
         this.port = process.env.PORT;
-
         this.middelwares();
         this.routes();
     }
@@ -57,7 +55,7 @@ class Server {
             }).catch((err) => {
                 console.log('DB connection error', err);
                 process.exit(1);
-            })
+            });
     }
 }
 

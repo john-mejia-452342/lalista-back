@@ -3,6 +3,8 @@ import { check } from 'express-validator';
 import { validarJWT } from '../middlewares/validar-jwt.js';
 import validarCampos from '../middlewares/validar-campos.js';
 import httpDonacion from '../controllers/donacion.js';
+import helpersUsuario from '../helpers/user.js';
+
 
 const router = Router();
 
@@ -36,6 +38,7 @@ router.post("/add", [
     validarJWT,
     check('idUser', 'Identificador del usuario requerido').not().isEmpty(), 
     check('idUser', 'Identificador del usuario requerido').isMongoId(),
+    check('idUser').custom(helpersUsuario.existeId),
     check('monto', 'Monto requerido').not().isEmpty(),
     check('mensaje', 'Mensaje requerido').not().isEmpty(),
     check('comprobante', 'Comprobante requerido').not().isEmpty(),

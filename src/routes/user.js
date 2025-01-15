@@ -3,7 +3,7 @@ import { check } from 'express-validator';
 import { validarJWT } from '../middlewares/validar-jwt.js';
 import validarCampos from '../middlewares/validar-campos.js';
 import httpUser from '../controllers/user.js';
-import helpersUsuario from '../helpers/usuario.js';
+import helpersUsuario from '../helpers/user.js';
 
 const router = Router();
 
@@ -33,8 +33,11 @@ router.get("/name/:nombre", [
 
 router.post("/registro", [
     check('nombre', 'El nombre es obligatorio').not().isEmpty(),
+    check('nombre').custom(helpersUsuario.existeNombre),
     check('correo', 'El correo es obligatorio').isEmail(),
     check('password', 'La contraseña es obligatoria').not().isEmpty(),
+    check('password', 'La contraseña debe tener al menos 1 mayuscula, 1 minuscula, 2 números y un caracter especial.')
+    .custom(helpersUsuario.validarClave),
     check('rol', 'El rol es obligatorio').not().isEmpty(),
     check('metodoDonacion', 'El metodo de donacion es obligatorio').not().isEmpty(),
     validarCampos,
@@ -49,6 +52,7 @@ router.post("/login", [
 router.get("/sendCode/:correo", [
     check('correo', 'Correo requerido').not().isEmpty(),
     check('correo', 'Correo requerido').isEmail(),
+    check('correo').custom(helpersUsuario.existeCorreo),
     validarCampos
 ], httpUser.codigoRecuperacion);
 
@@ -83,6 +87,7 @@ router.put("/editar/:id", [
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),
     check('nombre', 'El nombre es obligatorio').not().isEmpty(),
+    check('nombre').custom(helpersUsuario.existeNombre),
     check('correo', 'El correo es obligatorio').isEmail(),
     check('metodoDonacion', 'El metodo de donacion es obligatorio').not().isEmpty(),
     validarCampos,
@@ -92,6 +97,7 @@ router.put("/activar/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),
+    check('id').custom(helpersUsuario.existeId),
     validarCampos,
 ], httpUser.putActivarUsuario);
 
@@ -99,6 +105,9 @@ router.put("/inactivar/:id", [
     validarJWT,
     check('id', 'Identificador requerido').not().isEmpty(),
     check('id', 'Identificador requerido').isMongoId(),
+    check('id').custom(helpersUsuario.existeId),
+    check('id').custom(helpersUsuario.desactivarLogeado),
+    check('id').custom(helpersUsuario.desactivarAdmin),
     validarCampos,
 ], httpUser.putInactivarUsuario);
 

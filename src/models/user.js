@@ -5,7 +5,6 @@ const userSchema = new mongoose.Schema({
     correo: { type: String, required: true },
     password: { type: String, required: true },
     rol: { type: String, required: true },
-    metodoDonacion: { type: String, required: true, unique: true },
     createAT: { type: Date, default: Date.now },
     estado: { type: Boolean, default: 1 }
 });

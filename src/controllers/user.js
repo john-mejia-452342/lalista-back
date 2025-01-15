@@ -31,7 +31,7 @@ const hhtpUser = {
             });
             res.json(usersFormat);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -46,7 +46,7 @@ const hhtpUser = {
             const { password, ...userWithoutPassword } = user._doc;
             res.status(200).json(userWithoutPassword);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -61,7 +61,7 @@ const hhtpUser = {
             const { password, ...userWithoutPassword } = userCorreo._doc;
             res.status(200).json(userWithoutPassword);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -79,15 +79,15 @@ const hhtpUser = {
             });
             res.status(200).json(usersFormat);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
     //Registro de usuario
     postUserRegistro: async (req, res) => {
         try {
-            const { nombre, correo, password, rol, metodoDonacion } = req.body;
-            const user = new User({ nombre, correo, password, rol, metodoDonacion });
+            const { nombre, correo, password, rol } = req.body;
+            const user = new User({ nombre, correo, password, rol });
             if (user.password) {
                 const salt = bcrypt.genSaltSync();
                 user.password = bcrypt.hashSync(password, salt);
@@ -96,7 +96,7 @@ const hhtpUser = {
             delete user._doc.password;
             res.json(user);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -123,7 +123,7 @@ const hhtpUser = {
             delete user._doc.password;
             res.json({ user, token });
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -243,7 +243,7 @@ const hhtpUser = {
 
             res.status(400).json({ error: 'Código incorrecto' });
         } catch (error) {
-            return res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            return res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -277,7 +277,7 @@ const hhtpUser = {
 
             res.status(400).json({ error: 'Código incorrecto' });
         } catch (error) {
-            return res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            return res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -310,7 +310,7 @@ const hhtpUser = {
 
             return res.status(200).json({ message: "Contraseña actualizada" });
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -318,11 +318,11 @@ const hhtpUser = {
     putUserUpdate: async (req, res) => {
         try {
             const { id } = req.params;
-            const { nombre, correo, rol, metodoDonacion } = req.body;
-            const user = await User.findByIdAndUpdate(id, { nombre, correo, rol, metodoDonacion }, { new: true });
+            const { nombre, correo, rol } = req.body;
+            const user = await User.findByIdAndUpdate(id, { nombre, correo, rol }, { new: true });
             res.json(user);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -331,9 +331,10 @@ const hhtpUser = {
         try {
             const { id } = req.params;
             const user = await User.findByIdAndUpdate(id, { estado: 1 }, { new: true });
-            res.json(user);
+            const { password, ...userWithoutPassword } = user._doc;
+            res.status(200).json(userWithoutPassword);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -342,9 +343,10 @@ const hhtpUser = {
         try {
             const { id } = req.params;
             const user = await User.findByIdAndUpdate(id, { estado: 0 }, { new: true });
-            res.json(user);
+            const { password, ...userWithoutPassword } = user._doc;
+            res.status(200).json(userWithoutPassword);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -355,7 +357,7 @@ const hhtpUser = {
             await User.findByIdAndDelete(id);
             res.json({ message: 'Usuario eliminado exitosamente' });
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     }
 };

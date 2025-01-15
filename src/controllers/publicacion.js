@@ -5,22 +5,34 @@ import User from '../models/user.js';
 import Notificacion from '../models/notificacion.js';
 import helpersGeneral from '../helpers/generales.js';
 
+const formatearFecha = (fecha) => {
+    const date = new Date(fecha);
+    const dia = date.getDate().toString().padStart(2, '0');
+    const mes = (date.getMonth() + 1).toString().padStart(2, '0');
+    const año = date.getFullYear();
+    return `${dia}/${mes}/${año}`;
+};
+
 const obtenerDetallesPublicacion = async (publicacion) => {
     const comentarios = await Comentario.find({ idPublicacion: publicacion._id }).populate('idUser', 'nombre');
     const reacciones = await Reaccion.find({ idPublicacion: publicacion._id }).populate('idUser', 'nombre');
+    
     const comentariosConReacciones = await Promise.all(comentarios.map(async (comentario) => {
         const reaccionesComentario = await Reaccion.find({ idComentario: comentario._id }).populate('idUser', 'nombre');
         return {
             ...comentario.toObject(),
             reacciones: reaccionesComentario,
-            contadorReacciones: reaccionesComentario.length
+            contadorReacciones: reaccionesComentario.length,
+            fechaFormateada: formatearFecha(comentario.createdAt)
         };
     }));
+
     return {
         ...publicacion.toObject(),
         comentarios: comentariosConReacciones,
         reacciones,
-        contadorReacciones: reacciones.length
+        contadorReacciones: reacciones.length,
+        fechaFormateada: formatearFecha(publicacion.createAT)
     };
 };
 
@@ -35,7 +47,7 @@ const httpPublicacion = {
             const publicacionesConDetalles = await Promise.all(publicaciones.map(obtenerDetallesPublicacion));
             res.json(publicacionesConDetalles);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -49,7 +61,7 @@ const httpPublicacion = {
             const publicacionesConDetalles = await Promise.all(publicaciones.map(obtenerDetallesPublicacion));
             res.json(publicacionesConDetalles);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -63,7 +75,7 @@ const httpPublicacion = {
             const publicacionesConDetalles = await Promise.all(publicaciones.map(obtenerDetallesPublicacion));
             res.json(publicacionesConDetalles);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -78,7 +90,7 @@ const httpPublicacion = {
             const publicacionConDetalles = await obtenerDetallesPublicacion(publicacionID);
             res.json(publicacionConDetalles);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -93,7 +105,7 @@ const httpPublicacion = {
             const publicacionesConDetalles = await Promise.all(publicaciones.map(obtenerDetallesPublicacion));
             res.json(publicacionesConDetalles);
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -143,7 +155,7 @@ const httpPublicacion = {
     // Agregar una nueva publicación
     postAddPublicacion: async (req, res) => {
         try {
-            const { titulo, contenido, imagen, idUser, tipo, categoria, ciudad } = req.body;
+            const { titulo, contenido, idUser, tipo, categoria, ciudad } = req.body;
 
             const nuevaPublicacion = new Publicacion({
                 titulo,
@@ -154,12 +166,10 @@ const httpPublicacion = {
                 ciudad,
                 categoria,
             });
-
             const user = await User.findById(idUser);
-
             const userAdmin = await User.find({ rol: 'admin' });
-
-            userAdmin.forEach(async (admin) => {
+            const notificaciones = [];
+            for (const admin of userAdmin) {
                 const nuevaNotificacion = new Notificacion({
                     idUser: admin._id,
                     idPublicacion: nuevaPublicacion._id,
@@ -167,12 +177,12 @@ const httpPublicacion = {
                     mensaje: `El usuario ${user.nombre} ha creado una nueva publicacion.`
                 });
                 await nuevaNotificacion.save();
-            });
-
+                notificaciones.push(nuevaNotificacion);
+            }
             const publicacionGuardada = await nuevaPublicacion.save();
-            res.json({publicacionGuardada});
+            res.json({ publicacionGuardada, notificaciones });
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -218,7 +228,7 @@ const httpPublicacion = {
             });
             res.json({publicacion, notificacion});
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -235,7 +245,7 @@ const httpPublicacion = {
             });
             res.json({publicacion, notificacion});
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     },
 
@@ -246,7 +256,7 @@ const httpPublicacion = {
             await Publicacion.findByIdAndDelete(id);
             res.json({ message: 'Publicacion eliminada exitosamente' });
         } catch (error) {
-            res.status(500).json({ error: helpersGeneral.errores.servidor, error });
+            res.status(500).json({ error: helpersGeneral.errores.servidor });
         }
     }
 };
